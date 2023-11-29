@@ -180,12 +180,12 @@ public class BookstoreApplication {
 
     private static void displayAvailableBooks(ArrayList<Book> Books) {
         System.out.println("\n--- Available Books ---");
-        int index = 1;
+        
         for (Book book : Books) {
 
             String bookType = (book instanceof FictionBook) ? "Fiction" : "Non-Fiction";
             System.out.println(book.getBookID() + ". " + book.getTitle() + " by " + book.getAuthor() + " - $" + book.getPrice() + " (" + bookType + ")");
-            index++;
+            
 
         }
 
@@ -308,7 +308,8 @@ public class BookstoreApplication {
 
     private static void issueBook(Bookstore bookstore, Scanner scanner, ArrayList<Book> Books) {
         System.out.println("\n--- Issue a Book ---");
-        displayAvailableBooks(Books);
+        // displayAvailableBooks(Books);
+        displayNonIssuedBooks(Books);
 
         System.out.print("Enter the title of the book you want to issue: ");
         scanner.nextLine(); // Consume the newline character left by nextInt()
@@ -326,6 +327,8 @@ public class BookstoreApplication {
     }
 
     private static void returnBook(Bookstore bookstore, Scanner scanner, ArrayList<Book> Books) {
+        displayIssuedBooks(Books);
+        System.out.println("");
         System.out.println("\n--- Return a Book ---");
         System.out.print("Enter the title of the book you want to return: ");
         scanner.nextLine();
@@ -346,5 +349,24 @@ public class BookstoreApplication {
         System.out.println("");
         System.out.println("---- Available Books ----");
 
+        for(Book book : Books){
+            if(book.getState() instanceof AvailableState){
+                String bookType = (book instanceof FictionBook) ? "Fiction" : "Non-Fiction";
+                System.out.println(book.getBookID() + ". " + book.getTitle() + " by " + book.getAuthor() + " - $" + book.getPrice() + " (" + bookType + ")");
+            }
+        }
+    }
+
+    private static void displayIssuedBooks(ArrayList<Book> Books){
+        
+        System.out.println("");
+        System.out.println("---- Issued Books ----");
+
+        for(Book book : Books){
+            if(book.getState() instanceof IssuedState){
+                String bookType = (book instanceof FictionBook) ? "Fiction" : "Non-Fiction";
+                System.out.println(book.getBookID() + ". " + book.getTitle() + " by " + book.getAuthor() + " - $" + book.getPrice() + " (" + bookType + ")");
+        }
+        }
     }
 }

@@ -50,5 +50,11 @@ abstract class Book {
     public void returnBook() {
         state.returnBook(this);
     }
+
+    public BookState getState(){
+        return this.state;
+    }
+
+   
 }
 
