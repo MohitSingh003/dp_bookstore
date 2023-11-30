@@ -19,12 +19,12 @@ public class Librarian implements Observer {
     }
 
     public void addNewBook(Bookstore bookstore, Book newBook) {
-        bookstore.addBook(newBook);
+        bookstore.addBook();
         System.out.println("Librarian " + name + " added a new book: " + newBook.getTitle());
     }
 
     public void removeBook(Bookstore bookstore, Book bookToRemove) {
-        bookstore.removeBook(bookToRemove);
+        bookstore.removeBook();
         System.out.println("Librarian " + name + " removed the book: " + bookToRemove.getTitle());
     }
 }

@@ -3,13 +3,13 @@ package dp_project_1;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
+import java.sql.SQLClientInfoException;
 import java.sql.SQLException;
+import java.sql.SQLInvalidAuthorizationSpecException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Scanner;
 import java.util.Iterator;
-
-
 
 public class BookstoreApplication {
 
@@ -18,57 +18,66 @@ public class BookstoreApplication {
 
     public static void main(String[] args) throws SQLException {
 
-        //Initializing JDBC
-        con = DriverManager.getConnection("jdbc:mysql://localhost:3306/bookstore", "root", "abechaluho121");
-            if(con == null){
-                System.out.println("Null");
-            }
+        // Initializing JDBC
+        try {
+            con = DriverManager.getConnection("jdbc:mysql://sql12.freesqldatabase.com:3306/sql12666213", "sql12666213","jVnDyJqk4b");
+        } catch (SQLInvalidAuthorizationSpecException e) {
+            System.out.println(e);
+            System.out.println("\nInvalid Credentials\n");
 
-            stmt = con.createStatement();
-            
+        } catch (SQLException e) {
+            System.out.println("\nSQL Exception encountered");
+        }
+        if (con == null) {
+            System.out.println("Null");
+        }
+
+        stmt = con.createStatement();
+
         System.out.println("JDBC Connection Created!");
 
-
+        Scanner scanner = new Scanner(System.in);
 
         // Singleton pattern
-        Bookstore bookstore = new Bookstore();
+        Bookstore bookstore = Bookstore.getInstance(scanner, stmt);
 
         // Factory Method pattern
-        BookFactory fictionBookFactory = new FictionBookFactory();
-        BookFactory nonFictionBookFactory = new NonFictionBookFactory();
+        // BookFactory fictionBookFactory = new FictionBookFactory();
+        // BookFactory nonFictionBookFactory = new NonFictionBookFactory();
 
         // Initial books in the bookstore
-        // Book fictionBook1 = fictionBookFactory.createBook("The Great Gatsby", "F. Scott Fitzgerald", 19.99);
-        // Book fictionBook2 = fictionBookFactory.createBook("To Kill a Mockingbird", "Harper Lee", 15.99);
-        // Book nonFictionBook1 = nonFictionBookFactory.createBook("Sapiens", "Yuval Noah Harari", 29.99);
-        // Book nonFictionBook2 = nonFictionBookFactory.createBook("The Power of Habit", "Charles Duhigg", 24.99);
+        // Book fictionBook1 = fictionBookFactory.createBook("The Great Gatsby", "F.
+        // Scott Fitzgerald", 19.99);
+        // Book fictionBook2 = fictionBookFactory.createBook("To Kill a Mockingbird",
+        // "Harper Lee", 15.99);
+        // Book nonFictionBook1 = nonFictionBookFactory.createBook("Sapiens", "Yuval
+        // Noah Harari", 29.99);
+        // Book nonFictionBook2 = nonFictionBookFactory.createBook("The Power of Habit",
+        // "Charles Duhigg", 24.99);
 
-        ArrayList<Book> BooksArr = new ArrayList<>();
+        // ArrayList<Book> BooksArr = new ArrayList<>();
         // BooksArr.add(fictionBook1);
         // BooksArr.add(fictionBook2);
         // BooksArr.add(nonFictionBook1);
         // BooksArr.add(nonFictionBook2);
 
-        String getBooks = "SELECT bookid, title, author, price, booktype from books";
-        ResultSet bookList = stmt.executeQuery(getBooks);
-        
-        while(bookList.next()){
-            int bookid = bookList.getInt("bookid");
-            String title = bookList.getString("title");
-            String author = bookList.getString("author");
-            double price = bookList.getDouble("price");
+        // String getBooks = "SELECT bookid, title, author, price, booktype from books";
+        // ResultSet bookList = stmt.executeQuery(getBooks);
 
-            String type = bookList.getString("booktype");
+        // while (bookList.next()) {
+        //     int bookid = bookList.getInt("bookid");
+        //     String title = bookList.getString("title");
+        //     String author = bookList.getString("author");
+        //     double price = bookList.getDouble("price");
 
-            if(type == "f"){
-                BooksArr.add(fictionBookFactory.createBook(bookid, title, author, price));
-            }
-            else{
-                BooksArr.add(nonFictionBookFactory.createBook(bookid, title, author, price));
-            }
-        }
+        //     String type = bookList.getString("booktype");
 
-
+        //     if (type.equals("f")) {
+        //         BooksArr.add(fictionBookFactory.createBook(bookid, title, author, price));
+        //     } else {
+        //         BooksArr.add(nonFictionBookFactory.createBook(bookid, title, author, price));
+        //     }
+        // }
 
         // Iterator BookIterator = BooksArr.iterator();
 
@@ -81,7 +90,7 @@ public class BookstoreApplication {
         bookstore.addObserver(customer2);
         bookstore.addObserver(librarian);
 
-        Scanner scanner = new Scanner(System.in);
+        
 
         int role = 0;
         do {
@@ -99,10 +108,10 @@ public class BookstoreApplication {
 
             switch (role) {
                 case 1:
-                    customerMenu(bookstore, scanner, BooksArr);
+                    customerMenu(bookstore, scanner);
                     break;
                 case 2:
-                    librarianMenu(bookstore, scanner, BooksArr);
+                    librarianMenu(bookstore, scanner);
                     break;
                 case 3:
                     System.out.println("Exiting the Bookstore. Thank you!");
@@ -115,7 +124,7 @@ public class BookstoreApplication {
         scanner.close();
     }
 
-    private static void customerMenu(Bookstore bookstore, Scanner scanner, ArrayList<Book> Books) {
+    private static void customerMenu(Bookstore bookstore, Scanner scanner) {
         int choice;
         do {
             System.out.println("\n--- Customer Menu ---");
@@ -128,13 +137,13 @@ public class BookstoreApplication {
 
             switch (choice) {
                 case 1:
-                    displayAvailableBooks(Books);
+                    bookstore.displayAvailableBooks();
                     break;
                 case 2:
-                    issueBook(bookstore, scanner, Books);
+                    // issueBook(bookstore, scanner, Books);
                     break;
                 case 3:
-                    returnBook(bookstore, scanner, Books);
+                    // returnBook(bookstore, scanner, Books);
                     break;
                 case 4:
                     System.out.println("Exiting the Customer Menu. Thank you!");
@@ -145,7 +154,7 @@ public class BookstoreApplication {
         } while (choice != 4);
     }
 
-    private static void librarianMenu(Bookstore bookstore, Scanner scanner, ArrayList<Book> Books) {
+    private static void librarianMenu(Bookstore bookstore, Scanner scanner) {
         System.out.println("\n--- Librarian Menu ---");
         System.out.println("1. Display available books");
         System.out.println("2. Add a new book");
@@ -159,15 +168,15 @@ public class BookstoreApplication {
         switch (choice) {
             case 1:
                 // Display available books
-                displayAvailableBooks(Books);
+                bookstore.displayAvailableBooks();
                 break;
             case 2:
-                addBook(scanner, Books);
+                bookstore.addBook();
 
                 break;
             case 3:
                 // Remove a book
-                removeBook(scanner, Books);
+                bookstore.removeBook();
 
                 break;
             case 4:
@@ -180,24 +189,23 @@ public class BookstoreApplication {
 
     private static void displayAvailableBooks(ArrayList<Book> Books) {
         System.out.println("\n--- Available Books ---");
-        
+
         for (Book book : Books) {
 
             String bookType = (book instanceof FictionBook) ? "Fiction" : "Non-Fiction";
-            System.out.println(book.getBookID() + ". " + book.getTitle() + " by " + book.getAuthor() + " - $" + book.getPrice() + " (" + bookType + ")");
-            
+            System.out.println(book.getBookID() + ". " + book.getTitle() + " by " + book.getAuthor() + " - $"
+                    + book.getPrice() + " (" + bookType + ")");
 
         }
 
     }
 
-
-    private static void addBook(Scanner scanner, ArrayList<Book> Books) {
+    private static void addBook(Scanner scanner, ArrayList<Book> Books, java.sql.Statement stmt) {
         System.out.println("\n--- Add a New Book ---");
         System.out.print("Enter the Book ID: ");
         int bookID = scanner.nextInt();
 
-// Consume the newline character
+        // Consume the newline character
         scanner.nextLine();
 
         System.out.print("Enter the title of the new book: ");
@@ -207,8 +215,6 @@ public class BookstoreApplication {
         System.out.print("Enter the price of the new book: ");
         double price;
         char type;
-
-        
 
         try {
             price = Double.parseDouble(scanner.nextLine());
@@ -239,15 +245,14 @@ public class BookstoreApplication {
             return;
         }
 
-        String addBook = "INSERT INTO books value (" + bookID + ", '" + title + "', '" + author + "', " + price + ", '" + type +"')";
-        
-        try{
+        String addBook = "INSERT INTO books value (" + bookID + ", '" + title + "', '" + author + "', " + price + ", '"
+                + type + "')";
+
+        try {
             stmt.execute(addBook);
-        }
-        catch(SQLException e){
+        } catch (SQLException e) {
             System.out.println("SQL Exception encountered");
-        }
-        catch(Exception e){
+        } catch (Exception e) {
             System.out.println("idk");
         }
         System.out.println("Book Added to database");
@@ -261,37 +266,34 @@ public class BookstoreApplication {
         displayAvailableBooks(Books);
     }
 
-    private static void removeBook(Scanner scanner, ArrayList<Book> Books){
+    private static void removeBook(Scanner scanner, ArrayList<Book> Books) {
         System.out.println("\n--- Remove a Book ---");
         displayAvailableBooks(Books);
         System.out.print("Enter the ID of book you want to remove : ");
         int id = scanner.nextInt();
-        
+
         // for(Book b : Books){
-        //     if(b.getBookID()==id){
-        //         Books.remove(b);
-        //     }
+        // if(b.getBookID()==id){
+        // Books.remove(b);
+        // }
         // }
 
         Iterator<Book> it = Books.iterator();
 
-        while(it.hasNext()){
+        while (it.hasNext()) {
             int i = it.next().getBookID();
-            if(i == id){
+            if (i == id) {
                 it.remove();
             }
         }
-        
 
         String removeBook_q = "DELETE FROM books WHERE bookid = " + id + ";";
-        
-        try{
+
+        try {
             stmt.execute(removeBook_q);
-        }
-        catch (SQLException e){
+        } catch (SQLException e) {
             System.out.println("Could not remove book from Database, please check if the Book exists in the Store");
-        }
-        catch (Exception e){
+        } catch (Exception e) {
             System.out.println("Some error encountered");
         }
 
@@ -300,10 +302,6 @@ public class BookstoreApplication {
         System.out.println("--------------------------------------------------------------------------------------");
         displayAvailableBooks(Books);
 
-
-
-
-        
     }
 
     private static void issueBook(Bookstore bookstore, Scanner scanner, ArrayList<Book> Books) {
@@ -345,28 +343,30 @@ public class BookstoreApplication {
         System.out.println("Book with title '" + title + "' not found.");
     }
 
-    private static void displayNonIssuedBooks(ArrayList<Book> Books){
+    private static void displayNonIssuedBooks(ArrayList<Book> Books) {
         System.out.println("");
         System.out.println("---- Available Books ----");
 
-        for(Book book : Books){
-            if(book.getState() instanceof AvailableState){
+        for (Book book : Books) {
+            if (book.getState() instanceof AvailableState) {
                 String bookType = (book instanceof FictionBook) ? "Fiction" : "Non-Fiction";
-                System.out.println(book.getBookID() + ". " + book.getTitle() + " by " + book.getAuthor() + " - $" + book.getPrice() + " (" + bookType + ")");
+                System.out.println(book.getBookID() + ". " + book.getTitle() + " by " + book.getAuthor() + " - $"
+                        + book.getPrice() + " (" + bookType + ")");
             }
         }
     }
 
-    private static void displayIssuedBooks(ArrayList<Book> Books){
-        
+    private static void displayIssuedBooks(ArrayList<Book> Books) {
+
         System.out.println("");
         System.out.println("---- Issued Books ----");
 
-        for(Book book : Books){
-            if(book.getState() instanceof IssuedState){
+        for (Book book : Books) {
+            if (book.getState() instanceof IssuedState) {
                 String bookType = (book instanceof FictionBook) ? "Fiction" : "Non-Fiction";
-                System.out.println(book.getBookID() + ". " + book.getTitle() + " by " + book.getAuthor() + " - $" + book.getPrice() + " (" + bookType + ")");
-        }
+                System.out.println(book.getBookID() + ". " + book.getTitle() + " by " + book.getAuthor() + " - $"
+                        + book.getPrice() + " (" + bookType + ")");
+            }
         }
     }
 }
