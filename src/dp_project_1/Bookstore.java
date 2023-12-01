@@ -252,6 +252,7 @@ public class Bookstore implements Observable {
     }
 
     void displayNonIssuedBooks(){
+        updateResult();
         System.out.println("");
         System.out.println("---- Available Books ----");
 
@@ -292,7 +293,7 @@ public class Bookstore implements Observable {
 
                 String type = bookList.getString("booktype");
 
-                boolean isIssued = bookList.getBoolean("isIssued");
+                boolean isIssued = (bookList.getInt("isIssued")==0) ? (false):(true);
 
                 Book newBook;
                 if (type.equals("f")) {
