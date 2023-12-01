@@ -38,53 +38,17 @@ public class BookstoreApplication {
 
         Scanner scanner = new Scanner(System.in);
 
+
+
         // Singleton pattern
         Bookstore bookstore = Bookstore.getInstance(scanner, stmt);
 
-        // Factory Method pattern
-        // BookFactory fictionBookFactory = new FictionBookFactory();
-        // BookFactory nonFictionBookFactory = new NonFictionBookFactory();
-
-        // Initial books in the bookstore
-        // Book fictionBook1 = fictionBookFactory.createBook("The Great Gatsby", "F.
-        // Scott Fitzgerald", 19.99);
-        // Book fictionBook2 = fictionBookFactory.createBook("To Kill a Mockingbird",
-        // "Harper Lee", 15.99);
-        // Book nonFictionBook1 = nonFictionBookFactory.createBook("Sapiens", "Yuval
-        // Noah Harari", 29.99);
-        // Book nonFictionBook2 = nonFictionBookFactory.createBook("The Power of Habit",
-        // "Charles Duhigg", 24.99);
-
-        // ArrayList<Book> BooksArr = new ArrayList<>();
-        // BooksArr.add(fictionBook1);
-        // BooksArr.add(fictionBook2);
-        // BooksArr.add(nonFictionBook1);
-        // BooksArr.add(nonFictionBook2);
-
-        // String getBooks = "SELECT bookid, title, author, price, booktype from books";
-        // ResultSet bookList = stmt.executeQuery(getBooks);
-
-        // while (bookList.next()) {
-        //     int bookid = bookList.getInt("bookid");
-        //     String title = bookList.getString("title");
-        //     String author = bookList.getString("author");
-        //     double price = bookList.getDouble("price");
-
-        //     String type = bookList.getString("booktype");
-
-        //     if (type.equals("f")) {
-        //         BooksArr.add(fictionBookFactory.createBook(bookid, title, author, price));
-        //     } else {
-        //         BooksArr.add(nonFictionBookFactory.createBook(bookid, title, author, price));
-        //     }
-        // }
-
-        // Iterator BookIterator = BooksArr.iterator();
+  
 
         // Observer pattern
-        Observer customer1 = new Customer("Alice");
-        Observer customer2 = new Customer("Bob");
-        Observer librarian = new Librarian("Librarian");
+        Observer customer1 = new Customer("Mohit");
+        Observer customer2 = new Customer("Prerna");
+        Observer librarian = new Librarian("Lakshay");
 
         bookstore.addObserver(customer1);
         bookstore.addObserver(customer2);
@@ -122,9 +86,11 @@ public class BookstoreApplication {
         } while (role != 3);
 
         scanner.close();
+        stmt.close();
+        con.close();
     }
 
-    private static void customerMenu(Bookstore bookstore, Scanner scanner) {
+    private static void customerMenu(Bookstore bookstore, Scanner scanner) throws SQLException {
         int choice;
         do {
             System.out.println("\n--- Customer Menu ---");
@@ -140,10 +106,10 @@ public class BookstoreApplication {
                     bookstore.displayAvailableBooks();
                     break;
                 case 2:
-                    // issueBook(bookstore, scanner, Books);
+                    bookstore.issueBook();
                     break;
                 case 3:
-                    // returnBook(bookstore, scanner, Books);
+                    bookstore.returnBook();
                     break;
                 case 4:
                     System.out.println("Exiting the Customer Menu. Thank you!");
@@ -304,44 +270,9 @@ public class BookstoreApplication {
 
     }
 
-    private static void issueBook(Bookstore bookstore, Scanner scanner, ArrayList<Book> Books) {
-        System.out.println("\n--- Issue a Book ---");
-        // displayAvailableBooks(Books);
-        displayNonIssuedBooks(Books);
+    
 
-        System.out.print("Enter the title of the book you want to issue: ");
-        scanner.nextLine(); // Consume the newline character left by nextInt()
-        String input = scanner.nextLine();
-
-        for (Book book : Books) {
-            if (book.getTitle().equalsIgnoreCase(input)) {
-                book.issue();
-                bookstore.notifyObservers("Book issued: " + book.getTitle());
-                return;
-            }
-        }
-
-        System.out.println("Book with title '" + input + "' not found.");
-    }
-
-    private static void returnBook(Bookstore bookstore, Scanner scanner, ArrayList<Book> Books) {
-        displayIssuedBooks(Books);
-        System.out.println("");
-        System.out.println("\n--- Return a Book ---");
-        System.out.print("Enter the title of the book you want to return: ");
-        scanner.nextLine();
-        String title = scanner.nextLine();
-
-        for (Book book : Books) {
-            if (book.getTitle().equalsIgnoreCase(title)) {
-                book.returnBook();
-                bookstore.notifyObservers("Book returned: " + book.getTitle());
-                return;
-            }
-        }
-
-        System.out.println("Book with title '" + title + "' not found.");
-    }
+    
 
     private static void displayNonIssuedBooks(ArrayList<Book> Books) {
         System.out.println("");

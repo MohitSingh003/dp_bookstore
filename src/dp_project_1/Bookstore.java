@@ -26,7 +26,7 @@ public class Bookstore implements Observable {
     private BookFactory fictionBookFactory;
     private BookFactory nonFictionBookFactory;
 
-    public Bookstore(Scanner scanner, java.sql.Statement stmt) throws SQLException {
+    private Bookstore(Scanner scanner, java.sql.Statement stmt) throws SQLException {
 
         // Database initialization
         this.scanner = scanner;
@@ -37,33 +37,11 @@ public class Bookstore implements Observable {
         this.nonFictionBookFactory = new NonFictionBookFactory();
 
         this.Books = new ArrayList<>();
+        
+        updateResult();
 
         // Get books from DB and add to local ArrayList
-        String getBooks = "SELECT bookid, title, author, price, booktype from books";
-        ResultSet bookList;
-        try {
-            bookList = stmt.executeQuery(getBooks);
-            while (bookList.next()) {
-                int bookid = bookList.getInt("bookid");
-                String title = bookList.getString("title");
-                String author = bookList.getString("author");
-                double price = bookList.getDouble("price");
-
-                String type = bookList.getString("booktype");
-
-                if (type.equals("f")) {
-                    Books.add(fictionBookFactory.createBook(bookid, title, author, price));
-                } else {
-                    Books.add(nonFictionBookFactory.createBook(bookid, title, author, price));
-                }
-            }
-        } catch (SQLSyntaxErrorException e) {
-            System.out.println("Invalid SQL Syntax");
-        } catch (SQLTimeoutException e) {
-            System.out.println("SQL Login timeout");
-        } catch (SQLException e) {
-            System.out.println("Unknown SQL Exception encountered");
-        }
+        
 
     }
 
@@ -75,7 +53,7 @@ public class Bookstore implements Observable {
 
     }
 
-    private List<Observer> observers = new ArrayList<>();
+    private ArrayList<Observer> observers = new ArrayList<>();
 
     @Override
     public void addObserver(Observer observer) {
@@ -107,6 +85,7 @@ public class Bookstore implements Observable {
         System.out.print("Enter the author of the new book: ");
         String author = scanner.nextLine();
         System.out.print("Enter the price of the new book: ");
+        int isIssued = 0;
         double price;
         char type;
 
@@ -139,15 +118,16 @@ public class Bookstore implements Observable {
             return;
         }
 
-        String addBook = "INSERT INTO books value (" + bookID + ", '" + title + "', '" + author + "', " + price + ", '"
-                + type + "')";
+        String addBook = "INSERT INTO books value (" + bookID + ",'" + title + "','" + author + "'," + price + ",'"+ type + "'," + isIssued + ")";
 
         try {
             stmt.execute(addBook);
-        } catch (SQLException e) {
-            System.out.println("SQL Exception encountered");
-        } catch (Exception e) {
-            System.out.println("idk");
+        } catch (SQLSyntaxErrorException e) {
+            System.out.println("SQL Syntax exception");
+        }catch(SQLTimeoutException e){
+            System.out.println("SQL Timeout");
+        }catch (SQLException e) {
+            System.out.println("SQL Exception");
         }
         System.out.println("Book Added to database");
 
@@ -160,17 +140,74 @@ public class Bookstore implements Observable {
         displayAvailableBooks();
     }
 
-    Book[] getBooks() {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from
-                                                                       // nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    // void issueBook() {
+    //     System.out.println("\n--- Issue a Book ---");
+    //     // displayAvailableBooks(Books);
+    //     displayNonIssuedBooks();
+
+    //     System.out.print("Enter the title of the book you want to issue: ");
+    //     scanner.nextLine(); // Consume the newline character left by nextInt()
+    //     String input = scanner.nextLine();
+
+        
+    //     for (Book book : Books) {
+    //         if (book.getTitle().equalsIgnoreCase(input)) {
+    //             book.issue();
+    //             this.notifyObservers("Book issued: " + book.getTitle());
+    //             return;
+    //         }
+    //     }
+
+    //     System.out.println("Book with title '" + input + "' not found.");
+    // }
+
+    void issueBook() throws SQLException{
+        System.out.println("\n--- Issue a Book ---");
+        displayNonIssuedBooks();   
+
+        System.out.print("Enter the title of the book you want to issue: ");
+        scanner.nextLine(); // Consume the newline character left by nextInt()
+        String input = scanner.nextLine();
+        String updateStatus;
+        for (Book book : Books) {
+            
+            if (book.getTitle().equalsIgnoreCase(input)) {
+                book.issue();
+                updateStatus = "UPDATE books SET isIssued = 1 WHERE title = '" + input + "';";
+                stmt.execute(updateStatus);
+                notifyObservers("Book issued: " + book.getTitle());
+                return;
+            }
+        }
+
+
+
+        System.out.println("Book with title '" + input + "' not found.");
     }
 
-    boolean removeBook(String title) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from
-                                                                       // nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    void returnBook() throws SQLException{
+        displayIssuedBooks();
+        System.out.println("");
+        System.out.println("\n--- Return a Book ---");
+        System.out.print("Enter the title of the book you want to return: ");
+        scanner.nextLine();
+        String title = scanner.nextLine();
+        String updateStatus;
+        for (Book book : Books) {
+            if (book.getTitle().equalsIgnoreCase(title)) {
+                book.returnBook();
+                updateStatus = "UPDATE books SET isIssued = 0 WHERE title = '" + title + "';";
+                stmt.execute(updateStatus);
+                notifyObservers("Book returned: " + book.getTitle());
+                return;
+            }
+        }
+
+        System.out.println("Book with title '" + title + "' not found.");
     }
 
     void displayAvailableBooks() {
+        updateResult();
         System.out.println("\n--- Available Books ---");
 
         for (Book book : Books) {
@@ -183,6 +220,7 @@ public class Bookstore implements Observable {
     }
 
     void removeBook() {
+        updateResult();
         System.out.println("\n--- Remove a Book ---");
         displayAvailableBooks();
         System.out.print("Enter the ID of book you want to remove : ");
@@ -211,5 +249,70 @@ public class Bookstore implements Observable {
         System.out.println("Book removed");
         System.out.println("--------------------------------------------------------------------------------------");
         displayAvailableBooks();
+    }
+
+    void displayNonIssuedBooks(){
+        System.out.println("");
+        System.out.println("---- Available Books ----");
+
+        for (Book book : Books) {
+            if (book.getState() instanceof AvailableState) {
+                String bookType = (book instanceof FictionBook) ? "Fiction" : "Non-Fiction";
+                System.out.println(book.getBookID() + ". " + book.getTitle() + " by " + book.getAuthor() + " - $"
+                        + book.getPrice() + " (" + bookType + ")");
+            }
+        }
+    }
+
+    void displayIssuedBooks(){
+        System.out.println("");
+        System.out.println("---- Issued Books ----");
+
+        for (Book book : Books) {
+            if (book.getState() instanceof IssuedState) {
+                String bookType = (book instanceof FictionBook) ? "Fiction" : "Non-Fiction";
+                System.out.println(book.getBookID() + ". " + book.getTitle() + " by " + book.getAuthor() + " - $"
+                        + book.getPrice() + " (" + bookType + ")");
+            }
+        }
+    }
+    
+    void updateResult(){
+        Books.clear();
+
+        String getBooks = "SELECT bookid, title, author, price, booktype, isIssued from books";
+        ResultSet bookList;
+        try {
+            bookList = stmt.executeQuery(getBooks);
+            while (bookList.next()) {
+                int bookid = bookList.getInt("bookid");
+                String title = bookList.getString("title");
+                String author = bookList.getString("author");
+                double price = bookList.getDouble("price");
+
+                String type = bookList.getString("booktype");
+
+                boolean isIssued = bookList.getBoolean("isIssued");
+
+                Book newBook;
+                if (type.equals("f")) {
+                    newBook = fictionBookFactory.createBook(bookid, title, author, price);
+                    Books.add(newBook);
+                } else {
+                    newBook = nonFictionBookFactory.createBook(bookid, title, author, price);
+                    Books.add(newBook);
+                }
+
+                if(isIssued){
+                    newBook.setState(new IssuedState());
+                }
+            }
+        } catch (SQLSyntaxErrorException e) {
+            System.out.println("Invalid SQL Syntax");
+        } catch (SQLTimeoutException e) {
+            System.out.println("SQL Login timeout");
+        } catch (SQLException e) {
+            System.out.println("Unknown SQL Exception encountered");
+        }
     }
 }

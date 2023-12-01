@@ -16,6 +16,9 @@ class AvailableState implements BookState {
         System.out.println("");
         System.out.println("Book issued: " + book.getTitle());
         book.setState(new IssuedState());
+        if(book.getState() instanceof AvailableState){
+            System.out.println("instance of Availalbe state");
+        }
     }
 
     @Override
